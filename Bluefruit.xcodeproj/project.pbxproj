@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		0433532FB270D7684E8F0A16 /* Pods_macOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52616FB9D63C65BD58A87279 /* Pods_macOS.framework */; };
-		4DCD46B273656A7D66CD9A8B /* Pods_Bluefruit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 26A937DE0A0ACE75597E27BB /* Pods_Bluefruit.framework */; };
 		7F561AC36AACA889C7D12E14 /* Pods_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28950E0836DF706F3BBCAA8A /* Pods_iOS.framework */; };
 		A90798291E4349D6005470A5 /* ControllerColorWheelViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90798241E4349D6005470A5 /* ControllerColorWheelViewController.swift */; };
 		A907982A1E4349D6005470A5 /* ControllerComponentsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90798251E4349D6005470A5 /* ControllerComponentsTableViewCell.swift */; };
@@ -375,7 +374,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		055DC6C95AFD1D83A533FE6E /* Pods-Bluefruit.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Bluefruit.release.xcconfig"; path = "Pods/Target Support Files/Pods-Bluefruit/Pods-Bluefruit.release.xcconfig"; sourceTree = "<group>"; };
 		26A937DE0A0ACE75597E27BB /* Pods_Bluefruit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Bluefruit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		28950E0836DF706F3BBCAA8A /* Pods_iOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_iOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2F9569E2A21BA0A3C063393A /* Pods-iOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iOS.release.xcconfig"; path = "Pods/Target Support Files/Pods-iOS/Pods-iOS.release.xcconfig"; sourceTree = "<group>"; };
@@ -649,7 +647,6 @@
 		A9F4E1BB1F04467200BF8A70 /* ISColorWheel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ISColorWheel.m; sourceTree = "<group>"; };
 		A9FA1BE81EDEE1C20086CDCC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/NeoPixel.storyboard; sourceTree = "<group>"; };
 		A9FA1BEF1EE308830086CDCC /* NeopixelComponentSelectorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NeopixelComponentSelectorViewController.swift; sourceTree = "<group>"; };
-		BB1BB1044EF759EB97FBDA70 /* Pods-Bluefruit.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Bluefruit.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Bluefruit/Pods-Bluefruit.debug.xcconfig"; sourceTree = "<group>"; };
 		DE511F22E8F88E565DA29F57 /* Pods-macOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-macOS.debug.xcconfig"; path = "Pods/Target Support Files/Pods-macOS/Pods-macOS.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -682,7 +679,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				A945EA6B1E4DF3CA00737BB0 /* libz.tbd in Frameworks */,
-				4DCD46B273656A7D66CD9A8B /* Pods_Bluefruit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -703,8 +699,6 @@
 				2F9569E2A21BA0A3C063393A /* Pods-iOS.release.xcconfig */,
 				DE511F22E8F88E565DA29F57 /* Pods-macOS.debug.xcconfig */,
 				54F4B0C0A169FBC46959E076 /* Pods-macOS.release.xcconfig */,
-				BB1BB1044EF759EB97FBDA70 /* Pods-Bluefruit.debug.xcconfig */,
-				055DC6C95AFD1D83A533FE6E /* Pods-Bluefruit.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -1728,11 +1722,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = A9BCD6201E4D3A61003D1CEA /* Build configuration list for PBXNativeTarget "Bluefruit" */;
 			buildPhases = (
-				CE532BAA466C0F664D766C75 /* [CP] Check Pods Manifest.lock */,
 				A9BCD6181E4D3A61003D1CEA /* Sources */,
 				A9BCD6191E4D3A61003D1CEA /* Frameworks */,
 				A9BCD61A1E4D3A61003D1CEA /* CopyFiles */,
-				D6D495888652EBA4F42D332D /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -1990,39 +1982,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-iOS/Pods-iOS-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		CE532BAA466C0F664D766C75 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Bluefruit-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		D6D495888652EBA4F42D332D /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Bluefruit/Pods-Bluefruit-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		F1359294F68DAA8B076BA899 /* [CP] Check Pods Manifest.lock */ = {
@@ -2694,10 +2653,11 @@
 		};
 		A9BCD6211E4D3A61003D1CEA /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = BB1BB1044EF759EB97FBDA70 /* Pods-Bluefruit.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_IDENTITY = "-";
 				DEVELOPMENT_TEAM = U8333665R6;
+				EMBED_ASSET_PACKS_IN_PRODUCT_BUNDLE = NO;
 				INFOPLIST_FILE = "$(SRCROOT)/Bluefruit/Platform/macOS_CommandLine/Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				OTHER_LDFLAGS = (
@@ -2718,10 +2678,11 @@
 		};
 		A9BCD6221E4D3A61003D1CEA /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 055DC6C95AFD1D83A533FE6E /* Pods-Bluefruit.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_IDENTITY = "-";
 				DEVELOPMENT_TEAM = U8333665R6;
+				EMBED_ASSET_PACKS_IN_PRODUCT_BUNDLE = NO;
 				INFOPLIST_FILE = "$(SRCROOT)/Bluefruit/Platform/macOS_CommandLine/Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				OTHER_LDFLAGS = (

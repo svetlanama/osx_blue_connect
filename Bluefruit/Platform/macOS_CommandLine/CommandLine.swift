@@ -20,6 +20,7 @@ class CommandLine: NSObject {
     fileprivate let firmwareUpdater = FirmwareUpdater()
     fileprivate let dfuUpdateProcess = DfuUpdateProcess()
     fileprivate var dfuPeripheral: BlePeripheral?
+    fileprivate var macPeripheral: BlePeripheral?
     fileprivate var hexUrl: URL?
     fileprivate var iniUrl: URL?
     fileprivate var zipUrl: URL?
@@ -209,7 +210,91 @@ class CommandLine: NSObject {
             dfuPeripheral = nil
         }
     }
+  
+  func macPeripheral(uuid peripheralUUID: UUID, zipUrl: URL, releases: [AnyHashable: Any]? = nil, ignorePreChecks: Bool) {
+    self.zipUrl = zipUrl
+    self.dFUIgnorePrechecks = ignorePreChecks
     
+    startMacPeripheral(uuid: peripheralUUID, releases: releases)
+  }
+  
+  private func startMacPeripheral(uuid peripheralUUID: UUID, releases: [AnyHashable: Any]? = nil) {
+    guard let centralManager = BleManager.sharedInstance.centralManager else { DLog("centralManager is nil"); return }
+    
+    //var blePeripheral: BlePeripheral?
+    if let peripheral = BleManager.sharedInstance.peripherals().filter({ $0.identifier == peripheralUUID && $0.name == "FBe" }).first {
+      print("advertisements: ", peripheral.advertisement.advertisementData)
+      var advertisement = peripheral.advertisement.advertisementData //Advertisement(advertisementData: advertisementData)
+      print("peripheral rssi: ", peripheral.rssi)
+      
+      for (key, value) in peripheral.advertisement.advertisementData {
+         print("key: ", key)
+         print("value: ", value)
+      }
+      
+      macPeripheral = peripheral
+      didConnectToPeripheralObserver = NotificationCenter.default.addObserver(forName: .didConnectToPeripheral, object: nil, queue: .main, using: didConnectToPeripheralMac(notification:))
+      
+      BleManager.sharedInstance.connect(to: peripheral)
+      
+      //advertisement["kCBAdvDataManufacturerData"] = "ffff0000 01e2ffff 00000100 00000000 0000"
+  
+//      if let _peripheral = centralManager.retrievePeripherals(withIdentifiers: [peripheralUUID]).first {
+//
+//        let p = BlePeripheral(peripheral: _peripheral, advertisementData: advertisement, rssi: nil)
+//        print("ppp___: ", p)
+//        print("p: ", p.advertisement.advertisementData)
+//      }
+      
+      
+      //print("blePeripheral0: ", blePeripheral?.advertisement.advertisementData)
+    }
+    
+  }
+
+  private func didConnectToPeripheralMac(notification: Notification) {
+    // Unsubscribe from didConnect notifications
+    if let didConnectToPeripheralObserver = didConnectToPeripheralObserver { NotificationCenter.default.removeObserver(didConnectToPeripheralObserver) }
+    
+    // Check connected
+    guard let _macPeripheral = macPeripheral  else {
+      DLog("dfuDidConnectToPeripheral MAC dfuPeripheral is nil")
+      //dfuFinished() //TODO:
+      return
+    }
+
+    //firmwareUpdater.
+    //https://stackoverflow.com/a/24199063/2999739
+    
+    //..macPeripheral!.advertisement.advertisementData["kCBAdvDataManufacturerData"] = "ffff0000 01e2ffff 00000100 00000000 0000"
+    //guard let centralManager = BleManager.sharedInstance.centralManager else { DLog("centralManager is nil"); return }
+    
+    /*var advertisement = _macPeripheral.advertisement.advertisementData
+    advertisement[CBAdvertisementDataManufacturerDataKey] = "ffff0000 01e2ffff 00000100 00000000 0000"
+    macPeripheral?.advertisement.advertisementData[CBAdvertisementDataManufacturerDataKey] = "ffff0000 01e2ffff 00000100 00000000 0000"
+    let peripheralUUID = _macPeripheral.identifier // "788C222B-EF14-447A-B1C8-FD73354CD753"
+    if let _peripheral = centralManager.retrievePeripherals(withIdentifiers: [peripheralUUID]).first {
+
+      let p = BlePeripheral(peripheral: _peripheral, advertisementData: advertisement, rssi: nil)
+      print("p: ", p.advertisement.advertisementData)
+      macPeripheral = p
+      //macPeripheral?.peripheral(_peripheral, didWriteValueFor: CBAdvertisementDataManufacturerDataKey, error: nil)
+    }*/
+// FirmwareUpdater.
+  
+//    macPeripheral?.write(data: <#T##Data#>, for: CBAdvertisementDataManufacturerDataKey, type: CBCharacteristicWriteType, completion: { error in
+//        print("error...", error)
+//    })
+    // Read services / characteristics
+    //firmwareUpdater.checkUpdatesForPeripheral(macPeripheral!, delegate: self, shouldDiscoverServices: true, shouldRecommendBetaReleases: true, versionToIgnore: nil)
+    
+    //print("macPeripheral...",  )
+    print("Reading services and characteristics...", macPeripheral!.advertisement.advertisementData)
+ 
+    //BleManager.sharedInstance.disconnect(from: macPeripheral!)
+    //firmwareUpdater.checkUpdatesForPeripheral(dfuPeripheral, delegate: self, shouldDiscoverServices: true, shouldRecommendBetaReleases: true, versionToIgnore: nil)
+  }
+  
     private func didConnectToPeripheral(notification: Notification) {
         // Unsubscribe from didConnect notifications
         if let didConnectToPeripheralObserver = didConnectToPeripheralObserver { NotificationCenter.default.removeObserver(didConnectToPeripheralObserver) }

@@ -26,6 +26,7 @@ func main() {
         case scan = "scan"
         case dfu = "dfu"
         case update = "update"
+        case updateMacAdress = "mac"
     }
 
     enum Parameter: String {
@@ -134,6 +135,9 @@ func main() {
 
             case Command.update.rawValue:
                 command = .update
+              
+            case Command.updateMacAdress.rawValue:
+                command = .updateMacAdress
 
             case Parameter.peripheralUuid.rawValue, Parameter.peripheralUuidShort.rawValue:
                 peripheralIdentifier = nil
@@ -216,9 +220,57 @@ func main() {
             commandLine.showHelp()
 
         case .scan:
-            print("Scanning...")
+           print("Scanning...") //TODO: here
             commandLine.startScanning()
             let _ = readLine(strippingNewline: true)
+
+        case .updateMacAdress:
+          print("Update Mac adress...")
+          // Check input parameters
+          if zipUrl == nil && hexUrl == nil {
+            print (".zip or .hex files needed to perform update")
+            exit(EXIT_FAILURE)
+          }
+          
+          if peripheralIdentifier == nil {
+            peripheralIdentifier = commandLine.askUserForPeripheral()
+          }
+          
+          guard let peripheralIdentifier = peripheralIdentifier else {
+            print("Peripheral UUID invalid")
+            exit(EXIT_FAILURE)
+          }
+          
+          if ignoreDFUChecks {
+            print("\tIgnore DFU warnings")
+          }
+          
+          print("\tUUID: \(peripheralIdentifier)")
+          
+          if let hexUrl = hexUrl {
+            print("\tHex:  \(hexUrl)")
+            if let iniUrl = iniUrl {
+              print("\tInit: \(iniUrl)")
+            }
+            
+            // Launch dfu
+            queue.async(group: group) {
+              commandLine.dfuPeripheral(uuid: peripheralIdentifier, hexUrl: hexUrl, iniUrl: iniUrl, ignorePreChecks: ignoreDFUChecks)
+            }
+          }
+          else if let zipUrl = zipUrl {
+            print("\tZip:  \(zipUrl)")
+            // Launch Mac
+            queue.async(group: group) {
+              commandLine.macPeripheral(uuid: peripheralIdentifier, zipUrl: zipUrl, ignorePreChecks: ignoreDFUChecks)
+            }
+          }
+          else {
+            print("Argument validation error");
+            exit(EXIT_FAILURE)
+          }
+          
+          let _ = group.wait(timeout: DispatchTime.distantFuture)
 
         case .dfu:
             print("DFU Update")

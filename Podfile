@@ -27,10 +27,10 @@ target 'macOS' do
 	shared_pods
 end
 
-target 'Bluefruit' do       # command line tool
-    platform :osx, '10.13'
-    shared_pods2
-end
+#target 'Bluefruit' do       # command line tool
+#    platform :osx, '10.13'
+#    shared_pods2
+#end
 
 #target 'Bluefruit' do       # command line tool
 #    platform :osx, "10.11"
