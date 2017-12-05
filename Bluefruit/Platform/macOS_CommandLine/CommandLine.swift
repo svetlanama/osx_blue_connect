@@ -219,6 +219,7 @@ class CommandLine: NSObject {
   }
   
   private func startMacPeripheral(uuid peripheralUUID: UUID, releases: [AnyHashable: Any]? = nil) {
+    //TODO: Method1
     guard let centralManager = BleManager.sharedInstance.centralManager else { DLog("centralManager is nil"); return }
     if let peripheral = centralManager.retrievePeripherals(withIdentifiers: [peripheralUUID]).first {
       if peripheral.name != "FBe" { //URGENT only  FBe
@@ -243,12 +244,14 @@ class CommandLine: NSObject {
     }
     
     ////////////////////
- /*   guard let centralManager = BleManager.sharedInstance.centralManager else { DLog("centralManager is nil"); return }
+    //TODO: Method2
+    /*guard let centralManager = BleManager.sharedInstance.centralManager else { DLog("centralManager is nil"); return }
     
     //var blePeripheral: BlePeripheral?
-    if let peripheral = BleManager.sharedInstance.peripherals().filter({ $0.identifier == peripheralUUID}).first { // && $0.name == "FBe"
+    if let peripheral = BleManager.sharedInstance.peripherals().filter({ $0.identifier == peripheralUUID && $0.name == "FBe"}).first {
       //print("advertisements: ", peripheral.advertisement.advertisementData)
-      //var advertisement = peripheral.advertisement.advertisementData //Advertisement(advertisementData: advertisementData)
+      //var advertisement = peripheral.advertisement.advertisementData
+      //Advertisement(advertisementData: advertisementData)
 
       for (key, value) in peripheral.advertisement.advertisementData {
          print("key: ", key)
@@ -266,6 +269,7 @@ class CommandLine: NSObject {
   }
 
   private func didConnectToPeripheralMac(notification: Notification) {
+    //TODO: FOR Method2
     // Unsubscribe from didConnect notifications
     if let didConnectToPeripheralObserver = didConnectToPeripheralObserver { NotificationCenter.default.removeObserver(didConnectToPeripheralObserver) }
     
@@ -321,6 +325,8 @@ class CommandLine: NSObject {
   }
   
     private func didConnectToPeripheral(notification: Notification) {
+        //TODO: FOR Method2
+        //TODO: Try to update data
         // Unsubscribe from didConnect notifications
         if let didConnectToPeripheralObserver = didConnectToPeripheralObserver { NotificationCenter.default.removeObserver(didConnectToPeripheralObserver) }
 
@@ -330,7 +336,9 @@ class CommandLine: NSObject {
             dfuFinished()
             return
         }
-
+        //TODO: try to get advertisment data
+        //TODO: see Method2
+        // print("advertisements: ", peripheral.advertisement.advertisementData)
         // Read services / characteristics
         print("Reading services and characteristics...")
         firmwareUpdater.checkUpdatesForPeripheral(dfuPeripheral, delegate: self, shouldDiscoverServices: true, shouldRecommendBetaReleases: true, versionToIgnore: nil)
