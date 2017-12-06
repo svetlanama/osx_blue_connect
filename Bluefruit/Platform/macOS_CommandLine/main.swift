@@ -255,7 +255,7 @@ func main() {
             
             // Launch dfu
             queue.async(group: group) {
-              commandLine.dfuPeripheral(uuid: peripheralIdentifier, hexUrl: hexUrl, iniUrl: iniUrl, ignorePreChecks: ignoreDFUChecks)
+              commandLine.macPeripheral(uuid: peripheralIdentifier, hexUrl: hexUrl, iniUrl: iniUrl, ignorePreChecks: ignoreDFUChecks)
             }
           }
           else if let zipUrl = zipUrl {

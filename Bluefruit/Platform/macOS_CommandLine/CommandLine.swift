@@ -210,13 +210,22 @@ class CommandLine: NSObject {
             dfuPeripheral = nil
         }
     }
-  
-  func macPeripheral(uuid peripheralUUID: UUID, zipUrl: URL, releases: [AnyHashable: Any]? = nil, ignorePreChecks: Bool) {
-    self.zipUrl = zipUrl
-    self.dFUIgnorePrechecks = ignorePreChecks
     
-    startMacPeripheral(uuid: peripheralUUID, releases: releases)
-  }
+    func macPeripheral(uuid peripheralUUID: UUID, hexUrl: URL? = nil, iniUrl: URL? = nil, releases: [AnyHashable: Any]? = nil, ignorePreChecks: Bool) {
+        
+        self.hexUrl = hexUrl
+        self.iniUrl = iniUrl
+        self.dFUIgnorePrechecks = ignorePreChecks
+        
+        startMacPeripheral(uuid: peripheralUUID, releases: releases)
+    }
+  
+    func macPeripheral(uuid peripheralUUID: UUID, zipUrl: URL, releases: [AnyHashable: Any]? = nil, ignorePreChecks: Bool) {
+      self.zipUrl = zipUrl
+      self.dFUIgnorePrechecks = ignorePreChecks
+    
+      startMacPeripheral(uuid: peripheralUUID, releases: releases)
+    }
   
   private func startMacPeripheral(uuid peripheralUUID: UUID, releases: [AnyHashable: Any]? = nil) {
     //TODO: Method1
