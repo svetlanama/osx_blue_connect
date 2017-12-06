@@ -252,6 +252,7 @@ class CommandLine: NSObject {
       dfuPeripheral = nil
     }
     
+    
     ////////////////////
     //TODO: Method2
     /*guard let centralManager = BleManager.sharedInstance.centralManager else { DLog("centralManager is nil"); return }
@@ -278,20 +279,27 @@ class CommandLine: NSObject {
   }
 
   private func didConnectToPeripheralMac(notification: Notification) {
-    //TODO: FOR Method2
+    //TODO: CONNECTED FOR Method1 & Method2
+ 
     // Unsubscribe from didConnect notifications
     if let didConnectToPeripheralObserver = didConnectToPeripheralObserver { NotificationCenter.default.removeObserver(didConnectToPeripheralObserver) }
     
     // Check connected
     // TODO: restore
-//    guard let _macPeripheral = macPeripheral else {
-//      DLog("dfuDidConnectToPeripheral MAC dfuPeripheral is nil")
-//      //dfuFinished() //TODO:
-//      return
-//    }
+    //    guard let _macPeripheral = macPeripheral else {
+    //      DLog("dfuDidConnectToPeripheral MAC dfuPeripheral is nil")
+    //      //dfuFinished() //TODO:
+    //      return
+    //    }
 
-     dfuPeripheral?.advertisement.advertisementData["kCBAdvDataManufacturerData"] = "ffff0000 01e2ffff 00000100 00000000 0000"
-     print("dfuPeripheral Reading services and characteristics...", dfuPeripheral?.advertisement.advertisementData)
+     //TODO: try to get advertisment data like in Method2
+     //TODO: see Method2
+     // print("advertisements: ", peripheral.advertisement.advertisementData)
+     // Read services / characteristics
+    
+     //dfuPeripheral?.advertisement.advertisementData["kCBAdvDataManufacturerData"] = "ffff0000 01e2ffff 00000100 00000000 0000"
+     print("MAAAC___ didConnectToPeripheralMac dfuPeripheral Reading services and characteristics...", dfuPeripheral?.advertisement.advertisementData)
+    
 //    var data: [UInt16] =  [UInt16]()
 //    data[0] = 0xFF
 //    data[1] = 0x00
@@ -318,11 +326,13 @@ class CommandLine: NSObject {
       macPeripheral = p
       //macPeripheral?.peripheral(_peripheral, didWriteValueFor: CBAdvertisementDataManufacturerDataKey, error: nil)
     }*/
-// FirmwareUpdater.
-  
-//    macPeripheral?.write(data: <#T##Data#>, for: CBAdvertisementDataManufacturerDataKey, type: CBCharacteristicWriteType, completion: { error in
-//        print("error...", error)
-//    })
+    
+    // FirmwareUpdater.
+    
+    //    macPeripheral?.write(data: <#T##Data#>, for: CBAdvertisementDataManufacturerDataKey, type: CBCharacteristicWriteType, completion: { error in
+    //        print("error...", error)
+    //    })
+    
     // Read services / characteristics
     //firmwareUpdater.checkUpdatesForPeripheral(macPeripheral!, delegate: self, shouldDiscoverServices: true, shouldRecommendBetaReleases: true, versionToIgnore: nil)
     
@@ -345,7 +355,8 @@ class CommandLine: NSObject {
             dfuFinished()
             return
         }
-        //TODO: try to get advertisment data
+
+        //TODO: try to get advertisment data like in Method2
         //TODO: see Method2
         // print("advertisements: ", peripheral.advertisement.advertisementData)
         // Read services / characteristics
