@@ -234,12 +234,16 @@ class CommandLine: NSObject {
       if peripheral.name != "FBe" { //URGENT only  FBe
         return
       }
-      dfuPeripheral = BlePeripheral(peripheral: peripheral, advertisementData: nil, rssi: nil)
+      guard let peripheralA = BleManager.sharedInstance.peripherals().filter({ $0.identifier == peripheralUUID && $0.name == "FBe"}).first else {
+        return
+      }
+        
+      dfuPeripheral = BlePeripheral(peripheral: peripheral, advertisementData: peripheralA.advertisement.advertisementData, rssi: nil)
       self.releases = releases
       print("Connecting...")
 
       print("dfuPeripheral...", dfuPeripheral?.name)
-        
+      print("dfuPeripheral...", dfuPeripheral?.advertisement)
       // Subscribe to didConnect notifications
       didConnectToPeripheralObserver = NotificationCenter.default.addObserver(forName: .didConnectToPeripheral, object: nil, queue: .main, using: didConnectToPeripheralMac)
       print("advertisements: ", dfuPeripheral?.advertisement.advertisementData)
@@ -286,29 +290,39 @@ class CommandLine: NSObject {
     
     // Check connected
     // TODO: restore
-    //    guard let _macPeripheral = macPeripheral else {
-    //      DLog("dfuDidConnectToPeripheral MAC dfuPeripheral is nil")
-    //      //dfuFinished() //TODO:
-    //      return
-    //    }
+//        guard let _macPeripheral = macPeripheral else {
+//          DLog("OOPS dfuDidConnectToPeripheral MAC dfuPeripheral is nil")
+//          //dfuFinished() //TODO:
+//          return
+//        }
+    
+    guard let _dfuPeripheral = dfuPeripheral else {
+      DLog("OOPS dfuDidConnectToPeripheral MAC dfuPeripheral is nil")
+      //dfuFinished() //TODO:
+      return
+    }
 
      //TODO: try to get advertisment data like in Method2
      //TODO: see Method2
      // print("advertisements: ", peripheral.advertisement.advertisementData)
      // Read services / characteristics
+   
+     _dfuPeripheral.advertisement.advertisementData["kCBAdvDataManufacturerData"] = "ffff0000 01e2ffff 00000100 00000000 0000"
+     print("MAAAC___ didConnectToPeripheralMac dfuPeripheral Reading services and characteristics...", _dfuPeripheral.advertisement.advertisementData)
     
-     //dfuPeripheral?.advertisement.advertisementData["kCBAdvDataManufacturerData"] = "ffff0000 01e2ffff 00000100 00000000 0000"
-     print("MAAAC___ didConnectToPeripheralMac dfuPeripheral Reading services and characteristics...", dfuPeripheral?.advertisement.advertisementData)
+ 
     
+    //_dfuPeripheral.write(data: Data, for: <#T##CBCharacteristic#>, type: <#T##CBCharacteristicWriteType#>)
+     //var newPeripheral = BlePeripheral(peripheral: _dfuPeripheral, advertisementData: _dfuPeripheral.advertisement.advertisementData, rssi: nil)
 //    var data: [UInt16] =  [UInt16]()
 //    data[0] = 0xFF
 //    data[1] = 0x00
 //    data[2] = 0xFF
-//    let data = Data(bytes: [0x71, 0x3d, 0x0a, 0xd7, 0xa3, 0x10, 0x45, 0x40])
-//    let str = String(bytes: data, encoding: String.Encoding.utf8)
+     let data = Data(bytes: [0x71, 0x3d, 0x0a, 0xd7, 0xa3, 0x10, 0x45, 0x40])
+     let str = String(bytes: data, encoding: String.Encoding.utf16)
 //    print("new data___: ", str)
     
-    //_macPeripheral.write(data: data, for: CBAdvertisementDataManufacturerDataKey, type: CBCharacteristicWriteType.withResponse)
+  // _dfuPeripheral.write(data: data, for: CBCharacteristic., type: CBCharacteristicWriteType.withResponse)
     //firmwareUpdater.
     //https://stackoverflow.com/a/24199063/2999739
     
