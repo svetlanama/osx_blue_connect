@@ -229,20 +229,11 @@ class CommandLine: NSObject {
     }
   
   private func startMacPeripheral(uuid peripheralUUID: UUID, releases: [AnyHashable: Any]? = nil) {
-    //TODO: Method1
-    guard let centralManager = BleManager.sharedInstance.centralManager else { DLog("centralManager is nil"); return }
-    if let peripheral = centralManager.retrievePeripherals(withIdentifiers: [peripheralUUID]).first {
-      if peripheral.name != "FBe" { //URGENT only  FBe
-        return
-      }
-        
-    
-      guard let peripheralA = BleManager.sharedInstance.peripherals().filter({ $0.identifier == peripheralUUID && $0.name == "FBe"}).first else {
-        return
-      }
 
-      dfuPeripheral = peripheralA
-        //BlePeripheral(peripheral: peripheral, advertisementData: peripheralA.advertisement.advertisementData, rssi: nil)
+    if let peripheral = BleManager.sharedInstance.peripherals().filter({ $0.identifier == peripheralUUID && $0.name == "FBe"}).first {
+
+      dfuPeripheral = peripheral
+
       self.releases = releases
       print("Connecting...")
 
@@ -262,27 +253,15 @@ class CommandLine: NSObject {
   }
 
   private func didConnectToPeripheralMac(notification: Notification) {
-    //TODO: CONNECTED FOR Method1 & Method2
- 
+
     // Unsubscribe from didConnect notifications
     if let didConnectToPeripheralObserver = didConnectToPeripheralObserver { NotificationCenter.default.removeObserver(didConnectToPeripheralObserver) }
-    
-    // Check connected
-    // TODO: restore
-//        guard let _macPeripheral = macPeripheral else {
-//          DLog("OOPS dfuDidConnectToPeripheral MAC dfuPeripheral is nil")
-//          //dfuFinished() //TODO:
-//          return
-//        }
-    
+
     guard var _dfuPeripheral = dfuPeripheral else {
-      DLog("OOPS dfuDidConnectToPeripheral MAC dfuPeripheral is nil")
-      dfuFinished() //TODO:
+      DLog("OOPS dfuPeripheral is nil")
+      dfuFinished()
       return
     }
-
- 
-   // cbPeripheral?.delegate = self
 
     _dfuPeripheral.discover(serviceUuids: nil) { [weak self] error in
         guard let services = _dfuPeripheral.peripheral.services else {
@@ -298,20 +277,14 @@ class CommandLine: NSObject {
                 }
                 var characteristic: CBCharacteristic?
                 for ch in characteristics {
-                    
                     print("characteristics uuid: \(ch.uuid) ")
-                    
                     if ch.uuid.uuidString == "1111" {
                         _dfuPeripheral.readCharacteristic(ch, completion: { value, error in
                             //print("characteristics value: \(value) error: \(error)")
                             if let valueData = value as? Data {
                                 print("hexDescription: \(hexDescription(data: valueData)) ")
-//                                if let characteristicString = String(data: valueData, encoding: .utf8) {
-//                                    print("characteristicString: \(characteristicString)")
-//                                }
                             }
                         })
-                        
                         characteristic = ch
                     }
                 }
@@ -319,12 +292,9 @@ class CommandLine: NSObject {
                     return
                 }
                 self?.writeValueData(characteristic: _characteristic)
-
             })
-            
         }
     }
-
   }
     
     private func writeValueData(characteristic: CBCharacteristic) {
@@ -333,7 +303,7 @@ class CommandLine: NSObject {
             DLog("OOPS dfuPeripheral is nil")
             return
         }
-        let bytes:[UInt8] = [0x00, 0x00, 0x01, 0xE4]
+        let bytes:[UInt8] = [0x00, 0x00, 0x01, 0xE2]
         let newdata = Data(bytes: bytes);
         // hexDescription(data: data)
         _dfuPeripheral.write(data: newdata, for: characteristic, type: CBCharacteristicWriteType.withResponse)
