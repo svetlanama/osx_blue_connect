@@ -21,7 +21,7 @@ class CommandLine: NSObject {
     fileprivate let dfuUpdateProcess = DfuUpdateProcess()
     fileprivate var dfuPeripheral: BlePeripheral?
     fileprivate var macPeripheral: BlePeripheral?
-    fileprivate var cbPeripheral: CBPeripheral?
+
     fileprivate var hexUrl: URL?
     fileprivate var iniUrl: URL?
     fileprivate var zipUrl: URL?
@@ -203,14 +203,12 @@ class CommandLine: NSObject {
             didConnectToPeripheralObserver = NotificationCenter.default.addObserver(forName: .didConnectToPeripheral, object: nil, queue: .main, using: didConnectToPeripheral)
             
             // Connect to peripheral and wait
-            cbPeripheral = peripheral
             BleManager.sharedInstance.connect(to: dfuPeripheral!)
             let _ = dfuSemaphore.wait(timeout: .distantFuture)
             
         } else {
             print("Error. No peripheral found with UUID: \(peripheralUUID.uuidString)")
             dfuPeripheral = nil
-            cbPeripheral = nil
         }
     }
     
@@ -261,31 +259,6 @@ class CommandLine: NSObject {
       print("Error. No peripheral found with UUID: \(peripheralUUID.uuidString)")
       dfuPeripheral = nil
     }
-    
-    
-    ////////////////////
-    //TODO: Method2
-    /*guard let centralManager = BleManager.sharedInstance.centralManager else { DLog("centralManager is nil"); return }
-    
-    //var blePeripheral: BlePeripheral?
-    if let peripheral = BleManager.sharedInstance.peripherals().filter({ $0.identifier == peripheralUUID && $0.name == "FBe"}).first {
-      //print("advertisements: ", peripheral.advertisement.advertisementData)
-      //var advertisement = peripheral.advertisement.advertisementData
-      //Advertisement(advertisementData: advertisementData)
-
-      for (key, value) in peripheral.advertisement.advertisementData {
-         print("key: ", key)
-         print("value: ", value)
-      }
-      
-      macPeripheral = peripheral
-      didConnectToPeripheralObserver = NotificationCenter.default.addObserver(forName: .didConnectToPeripheral, object: nil, queue: .main, using: didConnectToPeripheralMac)
-      
-      BleManager.sharedInstance.connect(to: peripheral)
-      
-      //advertisement["kCBAdvDataManufacturerData"] = "ffff0000 01e2ffff 00000100 00000000 0000"
-    }
-    */
   }
 
   private func didConnectToPeripheralMac(notification: Notification) {
@@ -304,7 +277,7 @@ class CommandLine: NSObject {
     
     guard var _dfuPeripheral = dfuPeripheral else {
       DLog("OOPS dfuDidConnectToPeripheral MAC dfuPeripheral is nil")
-      //dfuFinished() //TODO:
+      dfuFinished() //TODO:
       return
     }
 
@@ -317,7 +290,7 @@ class CommandLine: NSObject {
         }
         //print("services: ", services)
         if let service = services[0] as? CBService {
-            print("__service: ", service)
+            //print("__service: ", service)
             _dfuPeripheral.discover(characteristicUuids: nil, service: service, completion: {  [weak self] error in
                 print("characteristics: ", service.characteristics)
                 guard let characteristics = service.characteristics else {
@@ -333,11 +306,9 @@ class CommandLine: NSObject {
                             //print("characteristics value: \(value) error: \(error)")
                             if let valueData = value as? Data {
                                 print("hexDescription: \(hexDescription(data: valueData)) ")
-                                if let characteristicString = String(data: valueData, encoding: .utf8) {
-                                    print("characteristicString: \(characteristicString)")
-                                    
-                                }
-                                
+//                                if let characteristicString = String(data: valueData, encoding: .utf8) {
+//                                    print("characteristicString: \(characteristicString)")
+//                                }
                             }
                         })
                         
@@ -347,26 +318,27 @@ class CommandLine: NSObject {
                 guard let _characteristic = characteristic else {
                     return
                 }
-                let bytes:[UInt8] = [0x00, 0x00, 0x01, 0xE1];
-                let newdata = Data(bytes: bytes);
-               // hexDescription(data: data)
-                //_characteristic.setValue(newdata, forKey: "value")
-                
-               //print("new characteristics uuid: \(_characteristic) ")
-                //if let data = "000001e7".data(using: .utf8) {
-                _dfuPeripheral.write(data: newdata, for: _characteristic, type: CBCharacteristicWriteType.withoutResponse)
-                //}
+                self?.writeValueData(characteristic: _characteristic)
+
             })
             
         }
     }
-    
-//    let k = CBUUID(string: "1111")
-//    if let data = "000001e7".data(using: .utf8) {
-//    _dfuPeripheral.write(data: data, for: k as! CBCharacteristic, type: CBCharacteristicWriteType.withoutResponse)
-//    }
 
   }
+    
+    private func writeValueData(characteristic: CBCharacteristic) {
+        
+        guard var _dfuPeripheral = dfuPeripheral else {
+            DLog("OOPS dfuPeripheral is nil")
+            return
+        }
+        let bytes:[UInt8] = [0x00, 0x00, 0x01, 0xE4]
+        let newdata = Data(bytes: bytes);
+        // hexDescription(data: data)
+        _dfuPeripheral.write(data: newdata, for: characteristic, type: CBCharacteristicWriteType.withResponse)
+        print("advertisements: ", dfuPeripheral?.advertisement.advertisementData)
+    }
   
     private func didConnectToPeripheral(notification: Notification) {
         //TODO: FOR Method2
