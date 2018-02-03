@@ -318,12 +318,16 @@ class CommandLine: NSObject {
     
  
     private func writeValueData(characteristic: CBCharacteristic, newData: Data) {
-        guard var _dfuPeripheral = dfuPeripheral else {
+        guard let _dfuPeripheral = dfuPeripheral else {
             DLog("OOPS dfuPeripheral is nil")
             return
         }
-       _dfuPeripheral.write(data: newData, for: characteristic, type: CBCharacteristicWriteType.withResponse)
-        print("advertisements: ", dfuPeripheral?.advertisement.advertisementData)
+     
+        let peripheral = characteristic.service.peripheral
+        peripheral.delegate = self
+        peripheral.writeValue(newData, for: characteristic, type: .withResponse)
+        
+       //_dfuPeripheral.write(data: newData, for: characteristic, type: CBCharacteristicWriteType.withResponse)
        // BleManager.sharedInstance.disconnect(from: _dfuPeripheral)
     }
     
@@ -509,5 +513,22 @@ extension CommandLine : CBPeripheralDelegate {
             return
         }
         print("Found \(services.count) services! :\(services)")
+    }
+ 
+    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+        print("didUpdateNotificationStateFor: \(characteristic) error: \(error)")
+    }
+    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
+        print("didUpdateNotificationStateFor: \(characteristic) error: \(error)")
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+        print("didUpdateValueFor: \(characteristic) error: \(error)")
+        guard let _dfuPeripheral = dfuPeripheral else {
+            DLog("OOPS dfuPeripheral is nil")
+            return
+        }
+        //print("advertisements: ", _dfuPeripheral.advertisement.advertisementData)
+        BleManager.sharedInstance.disconnect(from: _dfuPeripheral)
     }
 }
