@@ -291,23 +291,47 @@ class CommandLine: NSObject {
                 guard let _characteristic = characteristic else {
                     return
                 }
-                self?.writeValueData(characteristic: _characteristic)
+                //self?.writeValueData(characteristic: _characteristic)
+                self?.enterNewCharacteristicValue(characteristic: _characteristic)
             })
         }
     }
   }
     
-    private func writeValueData(characteristic: CBCharacteristic) {
+    
+    private func enterNewCharacteristicValue(characteristic: CBCharacteristic) {
+        var characteristicString = ""
+        while !validate(characteristicString) {
+            print("Value should contain 8 bytes. Enter new characteristic value => ")
+            characteristicString = readLine(strippingNewline: true) ?? ""
+        }
+        print("characteristicString: \(characteristicString)")
         
+        let bytes = stringToUInt8(string: characteristicString.uppercased())
+        //let bytes:[UInt8] = [0x00, 0x00, 0x01, 0xE4]
+        //print("newBytes: \(bytes)")
+        let newdata = Data(bytes: bytes)
+        print("hexDescription newdata: \(hexDescription(data: newdata))")
+        
+        writeValueData(characteristic: characteristic, newData: newdata)
+    }
+    
+ 
+    private func writeValueData(characteristic: CBCharacteristic, newData: Data) {
         guard var _dfuPeripheral = dfuPeripheral else {
             DLog("OOPS dfuPeripheral is nil")
             return
         }
-        let bytes:[UInt8] = [0x00, 0x00, 0x01, 0xE2]
-        let newdata = Data(bytes: bytes);
-        // hexDescription(data: data)
-        _dfuPeripheral.write(data: newdata, for: characteristic, type: CBCharacteristicWriteType.withResponse)
+       _dfuPeripheral.write(data: newData, for: characteristic, type: CBCharacteristicWriteType.withResponse)
         print("advertisements: ", dfuPeripheral?.advertisement.advertisementData)
+       // BleManager.sharedInstance.disconnect(from: _dfuPeripheral)
+    }
+    
+    private func validate(_ characteristicString: String) -> Bool {
+        if characteristicString.count == 8 {
+            return true
+        }
+        return false
     }
   
     private func didConnectToPeripheral(notification: Notification) {
