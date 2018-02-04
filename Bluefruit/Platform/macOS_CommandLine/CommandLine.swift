@@ -275,34 +275,77 @@ class CommandLine: NSObject {
                 guard let characteristics = service.characteristics else {
                     return
                 }
-                var characteristic: CBCharacteristic?
-                for ch in characteristics {
-                    print("characteristics uuid: \(ch.uuid) ")
-                    if ch.uuid.uuidString == "1111" {
-                        _dfuPeripheral.readCharacteristic(ch, completion: { value, error in
-                            //print("characteristics value: \(value) error: \(error)")
-                            if let valueData = value as? Data {
-                                print("hexDescription: \(hexDescription(data: valueData)) ")
-                            }
-                        })
-                        characteristic = ch
-                    }
-                }
-                guard let _characteristic = characteristic else {
-                    return
-                }
+                self?.printCharacteristics(characteristics: characteristics)
                 //self?.writeValueData(characteristic: _characteristic)
-                self?.enterNewCharacteristicValue(characteristic: _characteristic)
+                //self?.enterNewCharacteristicValue(characteristic: _characteristic)
             })
         }
     }
   }
     
+    private func printCharacteristics(characteristics: [CBCharacteristic]){
+        guard let _dfuPeripheral = dfuPeripheral else {
+            DLog("OOPS dfuPeripheral is nil")
+            return
+        }
+        
+        var callbacksLeft = characteristics.count
+        
+        func checkCompleted() {
+            callbacksLeft -= 1
+            if callbacksLeft == 0 {
+              chooseCharacteristicToChange(characteristics: characteristics)
+            }
+        }
+        
+        for i in 0...characteristics.count-1 {
+            let characteristic = characteristics[i]
+          
+            _dfuPeripheral.readCharacteristic(characteristic, completion: { [weak self] value, error in
+                guard let valueData = value as? Data else {
+                    return
+                }
+                //print("count: \(valueData.count) ")
+                print("\(i) -> characteristics uuid: \(characteristic.uuid) value: \(hexDescription(data: valueData)) \(valueData.count) bytes")
+                checkCompleted()
+            })
+        }
+       
+    }
     
-    private func enterNewCharacteristicValue(characteristic: CBCharacteristic) {
+    private func chooseCharacteristicToChange(characteristics: [CBCharacteristic]) {
+        guard let _dfuPeripheral = dfuPeripheral else {
+            DLog("OOPS dfuPeripheral is nil")
+            return
+        }
+        
+        var characteristic: CBCharacteristic?
+        print("Choose index of characteristic to change => ")
+        
+        if let strSelectedIndex = readLine(strippingNewline: true) as? String {
+            if let index = Int(strSelectedIndex) {
+                characteristic = characteristics[index]
+            }
+        }
+        guard let _characteristic = characteristic else {
+            return
+        }
+        
+        _dfuPeripheral.readCharacteristic(_characteristic, completion: { [weak self] value, error in
+            guard let valueData = value as? Data else {
+                return
+            }
+            //print("count: \(valueData.count) ")
+            print("hexDescription: \(hexDescription(data: valueData)) ")
+            self?.enterNewCharacteristicValue(characteristic: _characteristic, bytes: valueData.count)
+        })
+    }
+    
+    private func enterNewCharacteristicValue(characteristic: CBCharacteristic, bytes: Int) {
         var characteristicString = ""
-        while !validate(characteristicString) {
-            print("Value should contain 8 bytes. Enter new characteristic value => ")
+        let length = bytes*2
+        while !validate(characteristicString, length: length) {
+            print("Value should contain \(length) bytes. Enter new characteristic value => ")
             characteristicString = readLine(strippingNewline: true) ?? ""
         }
         print("characteristicString: \(characteristicString)")
@@ -331,16 +374,14 @@ class CommandLine: NSObject {
        // BleManager.sharedInstance.disconnect(from: _dfuPeripheral)
     }
     
-    private func validate(_ characteristicString: String) -> Bool {
-        if characteristicString.count == 8 {
+    private func validate(_ characteristicString: String, length: Int) -> Bool {
+        if characteristicString.count == length {
             return true
         }
         return false
     }
   
     private func didConnectToPeripheral(notification: Notification) {
-        //TODO: FOR Method2
-        //TODO: Try to update data
         // Unsubscribe from didConnect notifications
         if let didConnectToPeripheralObserver = didConnectToPeripheralObserver { NotificationCenter.default.removeObserver(didConnectToPeripheralObserver) }
 
@@ -517,6 +558,12 @@ extension CommandLine : CBPeripheralDelegate {
  
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         print("didUpdateNotificationStateFor: \(characteristic) error: \(error)")
+        guard let _dfuPeripheral = dfuPeripheral else {
+            DLog("OOPS dfuPeripheral is nil")
+            return
+        }
+        //print("advertisements: ", _dfuPeripheral.advertisement.advertisementData)
+        BleManager.sharedInstance.disconnect(from: _dfuPeripheral)
     }
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
         print("didUpdateNotificationStateFor: \(characteristic) error: \(error)")
