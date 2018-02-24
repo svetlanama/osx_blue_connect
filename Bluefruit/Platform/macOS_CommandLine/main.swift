@@ -41,6 +41,7 @@ func main() {
         case showBetaVersions = "--enable-beta"
         case showBetaVersionsShort = "-b"
         case ignoreDFUChecks = "--ignore-warnings"
+        case isDirectConnection = "--dir-conn"
     }
 
     // Data
@@ -55,6 +56,7 @@ func main() {
     var zipUrl: URL?
     var showBetaVersions = false
     var ignoreDFUChecks = false
+    var isDirectConnection = false
 
 
     /*
@@ -194,6 +196,9 @@ func main() {
 
             case Parameter.showBetaVersions.rawValue, Parameter.showBetaVersionsShort.rawValue:
                 showBetaVersions = true
+                
+            case Parameter.isDirectConnection.rawValue:
+                isDirectConnection = true
 
             default:
                 print("Unknown argument: \(argument)")
@@ -225,53 +230,90 @@ func main() {
             let _ = readLine(strippingNewline: true)
 
         case .updateMacAdress:
-          print("Update Mac adress...")
+          //print("Update Mac adress...")
           // Check input parameters
           if zipUrl == nil && hexUrl == nil {
             print (".zip or .hex files needed to perform update")
             exit(EXIT_FAILURE)
           }
           
-          if peripheralIdentifier == nil {
-            peripheralIdentifier = commandLine.askUserForPeripheral()
-          }
-          
-          guard let peripheralIdentifier = peripheralIdentifier else {
-            print("Peripheral UUID invalid")
-            exit(EXIT_FAILURE)
-          }
-          
-          if ignoreDFUChecks {
-            print("\tIgnore DFU warnings")
-          }
-          
-          print("\tUUID: \(peripheralIdentifier)")
-          
-          if let hexUrl = hexUrl {
-            print("\tHex:  \(hexUrl)")
-            if let iniUrl = iniUrl {
-              print("\tInit: \(iniUrl)")
+          if !isDirectConnection {
+            if peripheralIdentifier == nil {
+                peripheralIdentifier = commandLine.askUserForPeripheral()
             }
             
-            // Launch dfu
-            queue.async(group: group) {
-              commandLine.macPeripheral(uuid: peripheralIdentifier, hexUrl: hexUrl, iniUrl: iniUrl, ignorePreChecks: ignoreDFUChecks)
+            guard let peripheralIdentifier = peripheralIdentifier else {
+                print("Peripheral UUID invalid")
+                exit(EXIT_FAILURE)
             }
-          }
-          else if let zipUrl = zipUrl {
-            print("\tZip:  \(zipUrl)")
-            // Launch Mac
-            queue.async(group: group) {
-              commandLine.macPeripheral(uuid: peripheralIdentifier, zipUrl: zipUrl, ignorePreChecks: ignoreDFUChecks)
+            
+            if ignoreDFUChecks {
+                print("\tIgnore DFU warnings")
             }
-          }
-          else {
-            print("Argument validation error");
-            exit(EXIT_FAILURE)
-          }
-          
-          let _ = group.wait(timeout: DispatchTime.distantFuture)
+            
+            print("\tUUID: \(peripheralIdentifier)")
+            
+            if let hexUrl = hexUrl {
+                print("\tHex:  \(hexUrl)")
+                if let iniUrl = iniUrl {
+                    print("\tInit: \(iniUrl)")
+                }
+                
+                // Launch dfu
+                queue.async(group: group) {
+                    commandLine.macPeripheral(uuid: peripheralIdentifier, hexUrl: hexUrl, iniUrl: iniUrl, ignorePreChecks: ignoreDFUChecks)
+                }
+            }
+            else if let zipUrl = zipUrl {
+                print("\tZip:  \(zipUrl)")
+                // Launch Mac
+                queue.async(group: group) {
+                    commandLine.macPeripheral(uuid: peripheralIdentifier, zipUrl: zipUrl, ignorePreChecks: ignoreDFUChecks)
+                }
+            }
+            else {
+                print("Argument validation error");
+                exit(EXIT_FAILURE)
+            }
+            
+            let _ = group.wait(timeout: DispatchTime.distantFuture)
+          } else {
+         
+            //let characterictic = commandLine.enterNewCharacteristic()
+       
+            //CB75DD64-53CF-483B-9C6A-D54F8EA8B5B9 - FBe
+            //7C620CD4-3426-401E-B444-8F0966FB5513 - FBe
+            //788C222B-EF14-447A-B1C8-FD73354CD753 - office
+            guard let _peripheralIdentifier = UUID(uuidString: "788C222B-EF14-447A-B1C8-FD73354CD753") else {
+                print("Argument validation error");
+                exit(EXIT_FAILURE)
+            }
+            
+ 
+            commandLine.findPeripheral(uuid: _peripheralIdentifier)
+ 
+            
+//            if let hexUrl = hexUrl {
+//                print("\tHex:  \(hexUrl)")
+//                if let iniUrl = iniUrl {
+//                    print("\tInit: \(iniUrl)")
+//                }
+//                queue.async(group: group) {
+//                    commandLine.findPeripheral(uuid: _peripheralIdentifier, hexUrl: hexUrl, iniUrl: iniUrl, ignorePreChecks: ignoreDFUChecks)
+//                }
+//            }
+//            else if let zipUrl = zipUrl {
+//                print("\tZip:  \(zipUrl)")
+//                // Launch Mac
+//                queue.async(group: group) {
+//                    commandLine.findPeripheral(uuid: _peripheralIdentifier, zipUrl: zipUrl, ignorePreChecks: ignoreDFUChecks)
+//                }
+//            }
 
+
+            //enter FBE udid
+            let _ = group.wait(timeout: DispatchTime.distantFuture)
+          }
         case .dfu:
             print("DFU Update")
 

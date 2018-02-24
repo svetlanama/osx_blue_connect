@@ -14,13 +14,13 @@ class CommandLine: NSObject {
     // Scanning
     fileprivate var discoveredPeripheralsIdentifiers = [UUID]()
     fileprivate var scanResultsShowIndex = false
+    fileprivate var searchingPheripheralUUID: UUID?
 
     // DFU
     fileprivate var dfuSemaphore = DispatchSemaphore(value: 0)
     fileprivate let firmwareUpdater = FirmwareUpdater()
     fileprivate let dfuUpdateProcess = DfuUpdateProcess()
     fileprivate var dfuPeripheral: BlePeripheral?
-    fileprivate var macPeripheral: BlePeripheral?
 
     fileprivate var hexUrl: URL?
     fileprivate var iniUrl: URL?
@@ -112,6 +112,16 @@ class CommandLine: NSObject {
 
     private weak var didDiscoverPeripheralObserver: NSObjectProtocol?
 
+    private func startScanningForPeripheral(uudidString: UUID) {
+        self.scanResultsShowIndex = false
+        searchingPheripheralUUID = uudidString
+        
+        // Subscribe to Ble Notifications
+        didDiscoverPeripheralObserver = NotificationCenter.default.addObserver(forName: .didDiscoverPeripheral, object: nil, queue: .main, using: didDiscoverPeripheral)
+        
+        BleManager.sharedInstance.startScan()
+    }
+    
     private func startScanningAndShowIndex(_ scanResultsShowIndex: Bool) {
         self.scanResultsShowIndex = scanResultsShowIndex
 
@@ -148,6 +158,33 @@ class CommandLine: NSObject {
             }
         }
     }
+    
+    private func didFoundPeripheral(notification: Notification) {
+ 
+        guard let uuid = notification.userInfo?[BleManager.NotificationUserInfoKey.uuid.rawValue] as? UUID else { return }
+//        guard uuid == searchingPheripheralUUID else {
+//            return
+//        }
+        if let peripheral = BleManager.sharedInstance.peripheral(with: uuid) {
+            
+            if !discoveredPeripheralsIdentifiers.contains(uuid) {
+                discoveredPeripheralsIdentifiers.append(uuid)
+                
+                let name = peripheral.name != nil ? peripheral.name! : "<Unknown>"
+                if scanResultsShowIndex {
+                    if let index  = discoveredPeripheralsIdentifiers.index(of: uuid) {
+                        print("\(index) -> \(uuid) - \(name)")
+                    }
+                } else {
+                    print("Found: \(uuid): \(name)")
+                }
+            }
+        }
+        
+        stopScanning()
+        
+        startMacPeripheral(uuid: uuid, releases: releases)
+    }
 
     // MARK: - Ask user
     func askUserForPeripheral() -> UUID? {
@@ -164,8 +201,7 @@ class CommandLine: NSObject {
             stopScanning()
 
             print("")
-            //            print("Peripheral selected")
-
+            //print("Peripheral selected")
         }
 
         return peripheralIdentifier
@@ -359,7 +395,39 @@ class CommandLine: NSObject {
         writeValueData(characteristic: characteristic, newData: newdata)
     }
     
+    // NEW Flow
+    public func enterNewCharacteristic() -> (characteristicID: String, characteristicValue: String) {
+        var characteristicID = "1111"
+        var characteristicValue = ""
+        let length = 8 //bytes*2 depends on value
+        while !validate(characteristicValue, length: length) {
+            print("Value should contain \(length) bytes. Enter new characteristic value => ")
+            characteristicValue = readLine(strippingNewline: true) ?? ""
+        }
+        print("characteristicString: \(characteristicValue)")
+        
+        let bytes = stringToUInt8(string: characteristicValue.uppercased())
  
+        let newdata = Data(bytes: bytes)
+        print("hexDescription newdata: \(hexDescription(data: newdata))")
+        return (characteristicID, characteristicValue)
+    }
+    
+    func findPeripheral(uuid peripheralUUID: UUID) {
+        print("findPeripheral a peripheral: ")
+        let pheripherals : [CBPeripheral]? = BleManager.sharedInstance.centralManager?.retrievePeripherals(withIdentifiers: [peripheralUUID])
+        
+        print("retrievePeripherals: ", pheripherals)
+        guard let _pheripherals = pheripherals, _pheripherals.count > 0 else {
+            return
+        }
+ 
+        didConnectToPeripheralObserver = NotificationCenter.default.addObserver(forName: .didConnectToPeripheral, object: nil, queue: .main, using: didConnectToPeripheralMac)
+        dfuPeripheral = BlePeripheral(peripheral:  _pheripherals[0], advertisementData: nil, rssi: nil)
+        BleManager.sharedInstance.connect(to: dfuPeripheral!)
+        let _ = dfuSemaphore.wait(timeout: .distantFuture)
+    }
+    
     private func writeValueData(characteristic: CBCharacteristic, newData: Data) {
         guard let _dfuPeripheral = dfuPeripheral else {
             DLog("OOPS dfuPeripheral is nil")
@@ -415,7 +483,7 @@ class CommandLine: NSObject {
             let boardsInfo = ReleasesParser.parse(data, showBetaVersions: showBetaVersions)
             completionHandler?(boardsInfo)
         }
- */
+         */
     }
 }
 
@@ -565,6 +633,7 @@ extension CommandLine : CBPeripheralDelegate {
         //print("advertisements: ", _dfuPeripheral.advertisement.advertisementData)
         BleManager.sharedInstance.disconnect(from: _dfuPeripheral)
     }
+    
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
         print("didUpdateNotificationStateFor: \(characteristic) error: \(error)")
     }
