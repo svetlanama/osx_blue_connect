@@ -212,7 +212,7 @@ class BleManager: NSObject {
 
     func disconnect(from peripheral: BlePeripheral) {
 
-        DLog("disconnect")
+        //DLog("disconnect")
         NotificationCenter.default.post(name: .willDisconnectFromPeripheral, object: nil, userInfo: [NotificationUserInfoKey.uuid.rawValue: peripheral.identifier])
         centralManager?.cancelPeripheralConnection(peripheral.peripheral)
     }

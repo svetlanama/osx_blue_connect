@@ -43,3 +43,14 @@ func stringToUInt8(string: String) -> [UInt8] {
     }
     return newBytes
 }
+
+func dateToString(date: Date?) -> String {
+    guard let _date = date else {
+        return ""
+    }
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "HH:mm" //"yyyy MMM EEEE HH:mm"
+    dateFormatter.timeZone = NSTimeZone(name: "UTC") as TimeZone!
+    let timeStamp = dateFormatter.string(from: _date)
+    return timeStamp
+}

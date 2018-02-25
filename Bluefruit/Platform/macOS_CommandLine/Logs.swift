@@ -10,7 +10,7 @@ import Foundation
 
 struct Log {
     var uuid: String
-    var time: String
+    var date: Date
     var characteristicData: (characteristicID: String, characteristicValue: String)
 }
 
@@ -29,9 +29,10 @@ final class Logs {
     }
     
     func printLogs(){
+        print("\n Logs \n")
         for log in logs {
             print("\(log.uuid) " +
-                "time: \(String(describing: log.time)) " +
+                "time: \(dateToString(date: log.date)) " +
                 "characteristic: \(String(describing: log.characteristicData.characteristicID)) - \(String(describing: log.characteristicData.characteristicValue.uppercased()))")
         }
     }

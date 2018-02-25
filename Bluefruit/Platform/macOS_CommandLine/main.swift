@@ -271,8 +271,6 @@ func main() {
                     //let characterictic = ("1111", "000001e2")
                     commandLine.connectAndUpdatePeripheral(uuid: _peripheralIdentifier, characteristicData: characterictic, completionHandler: {
                         
-                        
-                        print("\n Updating finished")
                         print("Do you want to continue Y/N")
                         isContinue = readLine(strippingNewline: true)?.uppercased() == "Y" ? true : false
                         

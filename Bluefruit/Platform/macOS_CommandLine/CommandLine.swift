@@ -111,11 +111,8 @@ class CommandLine: NSObject {
         startScanningAndShowIndex(false)
     }
     
-    func printResults() {
-        startScanningAndShowIndex(false)
-    }
-    
     private weak var didDiscoverPeripheralObserver: NSObjectProtocol?
+    fileprivate weak var didDisconnectToPeripheralObserver: NSObjectProtocol?
     
     private func startScanningForPeripheral(uudidString: UUID) {
         self.scanResultsShowIndex = false
@@ -187,7 +184,7 @@ class CommandLine: NSObject {
     
     // MARK: - DFU
     private weak var didConnectToPeripheralObserver: NSObjectProtocol?
-    
+
     func dfuPeripheral(uuid peripheralUUID: UUID, hexUrl: URL? = nil, iniUrl: URL? = nil, releases: [AnyHashable: Any]? = nil, ignorePreChecks: Bool) {
         
         self.hexUrl = hexUrl
@@ -250,9 +247,7 @@ class CommandLine: NSObject {
             
             self.releases = releases
             print("Connecting...")
-            
-            print("dfuPeripheral...", dfuPeripheral?.name)
-            print("dfuPeripheral...", dfuPeripheral?.advertisement)
+ 
             // Subscribe to didConnect notifications
             didConnectToPeripheralObserver = NotificationCenter.default.addObserver(forName: .didConnectToPeripheral, object: nil, queue: .main, using: didConnectToPeripheralMac)
             print("advertisements: ", dfuPeripheral?.advertisement.advertisementData)
@@ -306,26 +301,21 @@ class CommandLine: NSObject {
                 guard let services = _dfuPeripheral.peripheral.services else {
                     return
                 }
-                //print("services: ", services)
                 if let service = services[0] as? CBService {
-                    //print("__service: ", service)
                     _dfuPeripheral.discover(characteristicUuids: nil, service: service, completion: {  [weak self] error in
-                        print("characteristics: ", service.characteristics)
                         guard let characteristics = service.characteristics else {
                             return
                         }
                         self?.printCharacteristics(characteristics: characteristics)
-                        //self?.writeValueData(characteristic: _characteristic)
-                        //self?.enterNewCharacteristicValue(characteristic: _characteristic)
                     })
                 }
             }
         }
     }
-    
+
     private func printCharacteristics(characteristics: [CBCharacteristic]){
         guard let _dfuPeripheral = dfuPeripheral else {
-            DLog("OOPS dfuPeripheral is nil")
+            DLog("dfuPeripheral is nil")
             return
         }
         
@@ -400,6 +390,7 @@ class CommandLine: NSObject {
     
     // NEW Flow2
     let characteristicsIDS = [(ID: "1111", bytes: 4), (ID: "2222", bytes: 2), (ID: "7777", bytes: 2), (ID: "9999", bytes: 1),(ID: "BBBB", bytes: 1)]
+    
     private func printCharacteristicsIDS() {
         for i in 0..<characteristicsIDS.count {
             print("\(i) --> \(characteristicsIDS[i].ID) - \(characteristicsIDS[i].bytes) bytes ")
@@ -414,7 +405,7 @@ class CommandLine: NSObject {
         }
         let characteristicID = characteristicsIDS[index].ID
         var characteristicValue = ""
-        let length = characteristicsIDS[index].bytes * 2 //depends on value
+        let length = characteristicsIDS[index].bytes * 2
         while !validate(characteristicValue, length: length) {
             print("Value should contain \(length) bytes. Enter new characteristic value => ")
             characteristicValue = readLine(strippingNewline: true) ?? ""
@@ -444,7 +435,7 @@ class CommandLine: NSObject {
         let _ = dfuSemaphore.wait(timeout: .distantFuture)
         
         if let _newCharacteristicData = newCharacteristicData {
-            Logs.sharedInstance.addLog(log: Log(uuid: peripheralUUID.uuidString, time: "11:00", characteristicData: _newCharacteristicData))
+            Logs.sharedInstance.addLog(log: Log(uuid: peripheralUUID.uuidString, date: Date(), characteristicData: _newCharacteristicData))
         }
         
         Logs.sharedInstance.printLogs()
@@ -506,6 +497,20 @@ class CommandLine: NSObject {
          completionHandler?(boardsInfo)
          }
          */
+    }
+    // MARK: - Scan
+    fileprivate func disconnectPheripheral() {
+        guard let _dfuPeripheral = dfuPeripheral else {
+            return
+        }
+        
+        didDisconnectToPeripheralObserver = NotificationCenter.default.addObserver(forName: .didDisconnectFromPeripheral, object: nil, queue: .main, using: didDisconnectToPeripheral)
+        
+        BleManager.sharedInstance.disconnect(from: _dfuPeripheral)
+    }
+    
+    private func didDisconnectToPeripheral(notification: Notification) {
+        dfuFinished()
     }
 }
 
@@ -648,30 +653,17 @@ extension CommandLine : CBPeripheralDelegate {
     
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         //print("didUpdateNotificationStateFor: \(characteristic) error: \(error)")
-        guard let _dfuPeripheral = dfuPeripheral else {
-            return
-        }
-        
-        print("\n ########## SUCCESS CHARACTERISTIC UPDATING ########## \n")
-        BleManager.sharedInstance.disconnect(from: _dfuPeripheral)
-        dfuFinished()
+        print("\n ########## SUCCESS CHARACTERISTIC UPDATE ########## \n")
+        disconnectPheripheral()
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
         //print("didUpdateNotificationStateFor: \(characteristic) error: \(error)")
-        guard let _dfuPeripheral = dfuPeripheral else {
-            return
-        }
-        BleManager.sharedInstance.disconnect(from: _dfuPeripheral)
-        dfuFinished()
+        disconnectPheripheral()
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         //print("didUpdateValueFor: \(characteristic) error: \(error)")
-        guard let _dfuPeripheral = dfuPeripheral else {
-            return
-        }
-        BleManager.sharedInstance.disconnect(from: _dfuPeripheral)
-        dfuFinished()
+        disconnectPheripheral()
     }
 }
