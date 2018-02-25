@@ -249,10 +249,10 @@ func main() {
             
             //commandLine.startScanning()
             func goto() {
-                //            guard let characterictic = commandLine.enterNewCharacteristic() as? (String, String) else {
-                //               print("Please enter characteritic")
-                //               exit(EXIT_FAILURE)
-                //            }
+                guard let characterictic = commandLine.enterNewCharacteristic() as? (String, String) else {
+                   print("Please enter characteritic")
+                   exit(EXIT_FAILURE)
+                }
                 
                 //CB75DD64-53CF-483B-9C6A-D54F8EA8B5B9 - FBe
                 //7C620CD4-3426-401E-B444-8F0966FB5513 - FBe
@@ -268,7 +268,7 @@ func main() {
                         exit(EXIT_FAILURE)
                     }
                     
-                    let characterictic = ("1111", "000001e2")
+                    //let characterictic = ("1111", "000001e2")
                     commandLine.connectAndUpdatePeripheral(uuid: _peripheralIdentifier, characteristicData: characterictic, completionHandler: {
                         
                         

@@ -431,8 +431,8 @@ class CommandLine: NSObject {
     func connectAndUpdatePeripheral(uuid peripheralUUID: UUID, characteristicData: (String, String), completionHandler: (() -> ())) {
         let pheripherals : [CBPeripheral]? = BleManager.sharedInstance.centralManager?.retrievePeripherals(withIdentifiers: [peripheralUUID])
         
-        print("retrievePeripherals: ", pheripherals)
-        //TODO if false
+        //print("retrievePeripherals: ", pheripherals)
+        //TODO: if no pheripheral
         guard let _pheripherals = pheripherals, _pheripherals.count > 0 else {
             return
         }
@@ -647,33 +647,31 @@ extension CommandLine : CBPeripheralDelegate {
     }
     
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
-        print("didUpdateNotificationStateFor: \(characteristic) error: \(error)")
+        //print("didUpdateNotificationStateFor: \(characteristic) error: \(error)")
         guard let _dfuPeripheral = dfuPeripheral else {
-            DLog("OOPS dfuPeripheral is nil")
             return
         }
         
         print("\n ########## SUCCESS CHARACTERISTIC UPDATING ########## \n")
-        //newCharacteristicData = nil
-        //BleManager.sharedInstance.disconnect(from: _dfuPeripheral)
+        BleManager.sharedInstance.disconnect(from: _dfuPeripheral)
         dfuFinished()
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
-        newCharacteristicData = nil
-        print("didUpdateNotificationStateFor: \(characteristic) error: \(error)")
-        // dfuFinished()
+        //print("didUpdateNotificationStateFor: \(characteristic) error: \(error)")
+        guard let _dfuPeripheral = dfuPeripheral else {
+            return
+        }
+        BleManager.sharedInstance.disconnect(from: _dfuPeripheral)
+        dfuFinished()
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-        print("didUpdateValueFor: \(characteristic) error: \(error)")
+        //print("didUpdateValueFor: \(characteristic) error: \(error)")
         guard let _dfuPeripheral = dfuPeripheral else {
-            DLog("OOPS dfuPeripheral is nil")
             return
         }
-        //print("advertisements: ", _dfuPeripheral.advertisement.advertisementData)
-        newCharacteristicData = nil
         BleManager.sharedInstance.disconnect(from: _dfuPeripheral)
-        // dfuFinished()
+        dfuFinished()
     }
 }
