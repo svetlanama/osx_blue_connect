@@ -17,8 +17,8 @@ final class Validator {
     }
     
     class func validate(uuid: String) -> Bool {
-        let pat = "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
-        
+        //let pat = "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+        let pat = "[a-fA-F0-9]{8}(-|)[a-fA-F0-9]{4}(-|)[a-fA-F0-9]{4}(-|)[a-fA-F0-9]{4}(-|)[a-fA-F0-9]{12}"
         let regex = try! NSRegularExpression(pattern: pat, options: [])
         
         let matches = regex.matches(in: uuid, options: [], range: NSRange(location: 0, length: uuid.characters.count))

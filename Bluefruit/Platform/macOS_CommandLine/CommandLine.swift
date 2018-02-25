@@ -15,7 +15,8 @@ class CommandLine: NSObject {
     fileprivate var discoveredPeripheralsIdentifiers = [UUID]()
     fileprivate var scanResultsShowIndex = false
     fileprivate var searchingPheripheralUUID: UUID?
-    
+    fileprivate var scanSemaphore = DispatchSemaphore(value: 0)
+    fileprivate let maxScanningTime = 5.0
     // DFU
     fileprivate var dfuSemaphore = DispatchSemaphore(value: 0)
     fileprivate let firmwareUpdater = FirmwareUpdater()
@@ -111,7 +112,21 @@ class CommandLine: NSObject {
         startScanningAndShowIndex(false)
     }
     
+    func startScanning(with completionHandler: (() -> ())) {
+       startScanningAndShowIndex(false)
+        
+       // Stop scan after n seconds
+       DispatchQueue.main.asyncAfter(deadline: .now() + maxScanningTime, execute: { [weak self] in
+          self?.stopScanning()
+          self?.scanSemaphore.signal()
+       })
+       let _ = scanSemaphore.wait(timeout: .distantFuture)
+        
+       completionHandler()
+    }
+    
     private weak var didDiscoverPeripheralObserver: NSObjectProtocol?
+    private weak var didUnDiscoverPeripheralObserver: NSObjectProtocol?
     fileprivate weak var didDisconnectToPeripheralObserver: NSObjectProtocol?
     
     private func startScanningForPeripheral(uuidString: UUID) {
@@ -120,7 +135,6 @@ class CommandLine: NSObject {
         
         // Subscribe to Ble Notifications
         didDiscoverPeripheralObserver = NotificationCenter.default.addObserver(forName: .didDiscoverPeripheral, object: nil, queue: .main, using: didDiscoverPeripheral)
-        
         BleManager.sharedInstance.startScan()
     }
     
@@ -175,7 +189,6 @@ class CommandLine: NSObject {
             //print("Selected UUID: \(peripheralUuid!)")
             stopScanning()
             
-            print("")
             //print("Peripheral selected")
         }
         
@@ -345,7 +358,7 @@ class CommandLine: NSObject {
     
     private func chooseCharacteristicToChange(characteristics: [CBCharacteristic]) {
         guard let _dfuPeripheral = dfuPeripheral else {
-            DLog("OOPS dfuPeripheral is nil")
+            DLog("dfuPeripheral is nil")
             return
         }
         
@@ -386,78 +399,6 @@ class CommandLine: NSObject {
         let newdata = Data(bytes: bytes)
         print("hexDescription: \(hexDescription(data: newdata))")
         writeValueData(characteristic: characteristic, newData: newdata)
-    }
-    
-    // NEW Flow2
-    let characteristicsIDS = [(ID: "1111", bytes: 4),
-                              (ID: "2222", bytes: 2),
-                              (ID: "7777", bytes: 2),
-                              (ID: "9999", bytes: 1),
-                              (ID: "BBBB", bytes: 1)]
-    
-    private func printCharacteristicsIDS() {
-        for i in 0..<characteristicsIDS.count {
-            print("\(i)  -> \(characteristicsIDS[i].ID) - \(characteristicsIDS[i].bytes) bytes ")
-        }
-    }
- 
-    public func enterNewCharacteristic() -> (characteristicID: String?, characteristicValue: String?) {
-        print("Select new characteristic ID => ")
-        printCharacteristicsIDS()
-        
-        guard let index = Int(readLine(strippingNewline: true) ?? "0") else {
-            return (nil, nil)
-        }
-        let characteristicID = characteristicsIDS[index].ID
-        var characteristicValue = ""
-        let length = characteristicsIDS[index].bytes * 2
-        while !Validator.validate(characteristicValue, length: length) {
-            print("Value should contain \(length) bytes. Enter new characteristic value => ")
-            characteristicValue = readLine(strippingNewline: true) ?? ""
-        }
-        print("characteristicString: \(characteristicValue)")
-
-        return (characteristicID, characteristicValue)
-    }
-    
-    public func enterPheriferalUUID() -> String {
-        print("Enter pheripheral UUID => ")
- 
-        var uuid = readLine(strippingNewline: true) ?? ""
-        while !Validator.validate(uuid: uuid) {
-            print("Value should be XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX format. Enter pheripheral UUID  => ")
-            uuid = readLine(strippingNewline: true) ?? ""
-        }
-    
-        let formattedUUID = Validator.formattedUUID(uuidString: uuid)
-        print("uuid: \(formattedUUID)")
-        return formattedUUID
-    }
-    
-    func connectToPeripheral(uuid peripheralUUID: UUID) {
-        startMacPeripheral(uuid: peripheralUUID, releases: nil)
-    }
-    
-    func connectAndUpdatePeripheral(uuid peripheralUUID: UUID, characteristicData: (String, String), completionHandler: (() -> ())) {
-        let pheripherals : [CBPeripheral]? = BleManager.sharedInstance.centralManager?.retrievePeripherals(withIdentifiers: [peripheralUUID])
-        
-        //print("retrievePeripherals: ", pheripherals)
-        //TODO: if no pheripheral
-        guard let _pheripherals = pheripherals, _pheripherals.count > 0 else {
-            return
-        }
-        newCharacteristicData = characteristicData
-        
-        didConnectToPeripheralObserver = NotificationCenter.default.addObserver(forName: .didConnectToPeripheral, object: nil, queue: .main, using: didConnectToPeripheralMac)
-        dfuPeripheral = BlePeripheral(peripheral:  _pheripherals[0], advertisementData: nil, rssi: nil)
-        BleManager.sharedInstance.connect(to: dfuPeripheral!)
-        let _ = dfuSemaphore.wait(timeout: .distantFuture)
-
-        completionHandler()
-    }
-    
-    private func resetData() {
-        newCharacteristicData = nil
     }
     
     private func writeValueData(characteristic: CBCharacteristic, newData: Data) {
@@ -505,7 +446,79 @@ class CommandLine: NSObject {
          }
          */
     }
-    // MARK: - Scan
+
+    //Mark: Flow2
+    let characteristicsIDS = [(ID: "1111", bytes: 4),
+                              (ID: "2222", bytes: 2),
+                              (ID: "7777", bytes: 2),
+                              (ID: "9999", bytes: 1),
+                              (ID: "BBBB", bytes: 1)]
+    
+    private func printCharacteristicsIDS() {
+        for i in 0..<characteristicsIDS.count {
+            print("\(i)  -> \(characteristicsIDS[i].ID) - \(characteristicsIDS[i].bytes) bytes ")
+        }
+    }
+    
+    public func enterNewCharacteristic() -> (characteristicID: String?, characteristicValue: String?) {
+        print("Select new characteristic ID => ")
+        printCharacteristicsIDS()
+        
+        guard let index = Int(readLine(strippingNewline: true) ?? "0") else {
+            return (nil, nil)
+        }
+        let characteristicID = characteristicsIDS[index].ID
+        var characteristicValue = ""
+        let length = characteristicsIDS[index].bytes * 2
+        while !Validator.validate(characteristicValue, length: length) {
+            print("Value should contain \(length) bytes. Enter new characteristic value => ")
+            characteristicValue = readLine(strippingNewline: true) ?? ""
+        }
+        print("characteristicString: \(characteristicValue)")
+        
+        return (characteristicID, characteristicValue)
+    }
+    
+    public func enterPheriferalUUID() -> String {
+        print("Enter pheripheral UUID => ")
+        
+        var uuid = readLine(strippingNewline: true) ?? ""
+        while !Validator.validate(uuid: uuid) {
+            print("Value should be XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX format. Enter pheripheral UUID  => ")
+            uuid = readLine(strippingNewline: true) ?? ""
+        }
+        
+        let formattedUUID = Validator.formattedUUID(uuidString: uuid)
+        print("uuid: \(formattedUUID)")
+        return formattedUUID
+    }
+    
+    func connectToPeripheral(uuid peripheralUUID: UUID) {
+        startMacPeripheral(uuid: peripheralUUID, releases: nil)
+    }
+    
+    func connectAndUpdatePeripheral(uuid peripheralUUID: UUID, characteristicData: (String, String), completionHandler: (() -> ())) {
+        let pheripherals : [CBPeripheral]? = BleManager.sharedInstance.centralManager?.retrievePeripherals(withIdentifiers: [peripheralUUID])
+        
+        guard let _pheripherals = pheripherals, _pheripherals.count > 0 else {
+            print("peripheral identifier not found")
+            completionHandler()
+            return
+        }
+        newCharacteristicData = characteristicData
+        
+        didConnectToPeripheralObserver = NotificationCenter.default.addObserver(forName: .didConnectToPeripheral, object: nil, queue: .main, using: didConnectToPeripheralMac)
+        dfuPeripheral = BlePeripheral(peripheral:  _pheripherals[0], advertisementData: nil, rssi: nil)
+        BleManager.sharedInstance.connect(to: dfuPeripheral!)
+        let _ = dfuSemaphore.wait(timeout: .distantFuture)
+        
+        completionHandler()
+    }
+    
+    private func resetData() {
+        newCharacteristicData = nil
+    }
+    
     fileprivate func disconnectPheripheral() {
         guard let _dfuPeripheral = dfuPeripheral else {
             return
@@ -517,7 +530,9 @@ class CommandLine: NSObject {
     }
     
     private func didDisconnectToPeripheral(notification: Notification) {
-        if let uuid = notification.userInfo?["uuid"] {
+       if let didDisconnectToPeripheralObserver = didDisconnectToPeripheralObserver {NotificationCenter.default.removeObserver(didDisconnectToPeripheralObserver)}
+        
+        if let uuid = notification.userInfo?[BleManager.NotificationUserInfoKey.uuid.rawValue] {
             if let _newCharacteristicData = newCharacteristicData {
                 Logs.sharedInstance.addLog(log: Log(uuid: String(describing: uuid), date: Date(), characteristicData: _newCharacteristicData))
             }

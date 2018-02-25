@@ -26,8 +26,8 @@ func main() {
         case scan = "scan"
         case dfu = "dfu"
         case update = "update"
-        case chnageCharacteristicFlow1 = "flow1"
-        case chnageCharacteristicFlow2 = "flow2"
+        case updateCharacteristicFlow1 = "update-ch-flow1"
+        case updateCharacteristicFlow2 = "update-ch-flow2"
     }
 
     enum Parameter: String {
@@ -137,11 +137,11 @@ func main() {
             case Command.update.rawValue:
                 command = .update
               
-            case Command.chnageCharacteristicFlow1.rawValue:
-                command = .chnageCharacteristicFlow1
+            case Command.updateCharacteristicFlow1.rawValue:
+                command = .updateCharacteristicFlow1
 
-            case Command.chnageCharacteristicFlow2.rawValue:
-                command = .chnageCharacteristicFlow2
+            case Command.updateCharacteristicFlow2.rawValue:
+                command = .updateCharacteristicFlow2
                 
             case Parameter.peripheralUuid.rawValue, Parameter.peripheralUuidShort.rawValue:
                 peripheralIdentifier = nil
@@ -228,7 +228,7 @@ func main() {
             commandLine.startScanning()
             let _ = readLine(strippingNewline: true)
 
-        case .chnageCharacteristicFlow1:
+        case .updateCharacteristicFlow1:
             if peripheralIdentifier == nil {
                 peripheralIdentifier = commandLine.askUserForPeripheral()
             }
@@ -245,9 +245,17 @@ func main() {
             
             let _ = group.wait(timeout: DispatchTime.distantFuture)
           
-        case .chnageCharacteristicFlow2:
+        case .updateCharacteristicFlow2:
             
-            //commandLine.startScanning()
+            // Scanning ...
+            let scanSemaphore = DispatchSemaphore(value: 0)
+            queue.async(group: group) {
+                commandLine.startScanning(with: {
+                    scanSemaphore.signal()
+                })
+            }
+            let _ = scanSemaphore.wait(timeout: DispatchTime.distantFuture)
+            
             func goto() {
                 /*
                 let characterictic = ("1111", "000001e2")
@@ -273,9 +281,9 @@ func main() {
                         exit(EXIT_FAILURE)
                     }
  
-                    commandLine.connectAndUpdatePeripheral(uuid: _peripheralIdentifier, characteristicData: characterictic, completionHandler: {
-                        
-                        print("Do you want to continue Y/N")
+                    commandLine.connectAndUpdatePeripheral(uuid: _peripheralIdentifier, characteristicData: characterictic, completionHandler: {_ in
+ 
+                        print("\n Do you want to continue Y/N?")
                         isContinue = readLine(strippingNewline: true)?.uppercased() == "Y" ? true : false
                         
                         if !isContinue {

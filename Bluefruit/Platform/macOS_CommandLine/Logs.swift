@@ -29,11 +29,11 @@ final class Logs {
     }
     
     func printLogs(){
-        print("\n Logs \n")
+        print("\n ########## Logs ##########")
         for log in logs {
-            print("\(log.uuid) " +
-                "time: \(dateToString(date: log.date)) " +
-                "characteristic: \(String(describing: log.characteristicData.characteristicID)) - \(String(describing: log.characteristicData.characteristicValue.uppercased()))")
+            print("UUID: \(log.uuid) " +
+                "TIME: \(dateToString(date: log.date)) " +
+                "CHARACTERISTIC ID: \(String(describing: log.characteristicData.characteristicID)) - VAUE: \(String(describing: log.characteristicData.characteristicValue.uppercased()))")
         }
     }
 }
