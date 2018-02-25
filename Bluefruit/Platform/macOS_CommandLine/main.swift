@@ -26,7 +26,8 @@ func main() {
         case scan = "scan"
         case dfu = "dfu"
         case update = "update"
-        case updateMacAdress = "mac"
+        case chnageCharacteristicFlow1 = "flow1"
+        case chnageCharacteristicFlow2 = "flow2"
     }
 
     enum Parameter: String {
@@ -41,7 +42,6 @@ func main() {
         case showBetaVersions = "--enable-beta"
         case showBetaVersionsShort = "-b"
         case ignoreDFUChecks = "--ignore-warnings"
-        case isDirectConnection = "--dir-conn"
     }
 
     // Data
@@ -56,7 +56,6 @@ func main() {
     var zipUrl: URL?
     var showBetaVersions = false
     var ignoreDFUChecks = false
-    var isDirectConnection = false
 
 
     /*
@@ -138,9 +137,12 @@ func main() {
             case Command.update.rawValue:
                 command = .update
               
-            case Command.updateMacAdress.rawValue:
-                command = .updateMacAdress
+            case Command.chnageCharacteristicFlow1.rawValue:
+                command = .chnageCharacteristicFlow1
 
+            case Command.chnageCharacteristicFlow2.rawValue:
+                command = .chnageCharacteristicFlow2
+                
             case Parameter.peripheralUuid.rawValue, Parameter.peripheralUuidShort.rawValue:
                 peripheralIdentifier = nil
                 if arguments.count >= index+1 {
@@ -196,9 +198,6 @@ func main() {
 
             case Parameter.showBetaVersions.rawValue, Parameter.showBetaVersionsShort.rawValue:
                 showBetaVersions = true
-                
-            case Parameter.isDirectConnection.rawValue:
-                isDirectConnection = true
 
             default:
                 print("Unknown argument: \(argument)")
@@ -229,15 +228,7 @@ func main() {
             commandLine.startScanning()
             let _ = readLine(strippingNewline: true)
 
-        case .updateMacAdress:
-          //print("Update Mac adress...")
-          // Check input parameters
-          if zipUrl == nil && hexUrl == nil {
-            print (".zip or .hex files needed to perform update")
-            exit(EXIT_FAILURE)
-          }
-          
-          if !isDirectConnection {
+        case .chnageCharacteristicFlow1:
             if peripheralIdentifier == nil {
                 peripheralIdentifier = commandLine.askUserForPeripheral()
             }
@@ -252,35 +243,15 @@ func main() {
             }
             
             print("\tUUID: \(peripheralIdentifier)")
-            
-            if let hexUrl = hexUrl {
-                print("\tHex:  \(hexUrl)")
-                if let iniUrl = iniUrl {
-                    print("\tInit: \(iniUrl)")
-                }
-                
-                // Launch dfu
-                queue.async(group: group) {
-                    commandLine.macPeripheral(uuid: peripheralIdentifier, hexUrl: hexUrl, iniUrl: iniUrl, ignorePreChecks: ignoreDFUChecks)
-                }
+            queue.async(group: group) {
+                commandLine.connectToPeripheral(uuid: peripheralIdentifier)
             }
-            else if let zipUrl = zipUrl {
-                print("\tZip:  \(zipUrl)")
-                // Launch Mac
-                queue.async(group: group) {
-                    commandLine.macPeripheral(uuid: peripheralIdentifier, zipUrl: zipUrl, ignorePreChecks: ignoreDFUChecks)
-                }
-            }
-            else {
-                print("Argument validation error");
-                exit(EXIT_FAILURE)
-            }
-            
+
             let _ = group.wait(timeout: DispatchTime.distantFuture)
-          } else {
-         
+          
+        case .chnageCharacteristicFlow2:
             let characterictic = commandLine.enterNewCharacteristic()
-       
+            
             //CB75DD64-53CF-483B-9C6A-D54F8EA8B5B9 - FBe
             //7C620CD4-3426-401E-B444-8F0966FB5513 - FBe
             //788C222B-EF14-447A-B1C8-FD73354CD753 - office
@@ -289,31 +260,11 @@ func main() {
                 exit(EXIT_FAILURE)
             }
             
- 
             commandLine.connectAndUpdatePeripheral(uuid: _peripheralIdentifier, characteristicData: characterictic)
- 
             
-//            if let hexUrl = hexUrl {
-//                print("\tHex:  \(hexUrl)")
-//                if let iniUrl = iniUrl {
-//                    print("\tInit: \(iniUrl)")
-//                }
-//                queue.async(group: group) {
-//                    commandLine.findPeripheral(uuid: _peripheralIdentifier, hexUrl: hexUrl, iniUrl: iniUrl, ignorePreChecks: ignoreDFUChecks)
-//                }
-//            }
-//            else if let zipUrl = zipUrl {
-//                print("\tZip:  \(zipUrl)")
-//                // Launch Mac
-//                queue.async(group: group) {
-//                    commandLine.findPeripheral(uuid: _peripheralIdentifier, zipUrl: zipUrl, ignorePreChecks: ignoreDFUChecks)
-//                }
-//            }
-
-
             //enter FBE udid
             let _ = group.wait(timeout: DispatchTime.distantFuture)
-          }
+        
         case .dfu:
             print("DFU Update")
 

@@ -439,6 +439,10 @@ class CommandLine: NSObject {
         return (characteristicID, characteristicValue)
     }
     
+    func connectToPeripheral(uuid peripheralUUID: UUID) {
+        startMacPeripheral(uuid: peripheralUUID, releases: nil)
+    }
+    
     func connectAndUpdatePeripheral(uuid peripheralUUID: UUID, characteristicData: (String, String)) {
         print("findPeripheral a peripheral: ")
         let pheripherals : [CBPeripheral]? = BleManager.sharedInstance.centralManager?.retrievePeripherals(withIdentifiers: [peripheralUUID])
