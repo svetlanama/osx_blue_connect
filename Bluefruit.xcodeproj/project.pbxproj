@@ -321,6 +321,7 @@
 		A9FA1BE91EDEE1C20086CDCC /* NeoPixel.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A9FA1BE71EDEE1C20086CDCC /* NeoPixel.storyboard */; };
 		A9FA1BF01EE308830086CDCC /* NeopixelComponentSelectorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FA1BEF1EE308830086CDCC /* NeopixelComponentSelectorViewController.swift */; };
 		DC65F1E62042526100262BC0 /* Logs.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC65F1E52042526100262BC0 /* Logs.swift */; };
+		DC65F1E82043355500262BC0 /* Validator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC65F1E72043355500262BC0 /* Validator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -649,6 +650,7 @@
 		A9FA1BE81EDEE1C20086CDCC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/NeoPixel.storyboard; sourceTree = "<group>"; };
 		A9FA1BEF1EE308830086CDCC /* NeopixelComponentSelectorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NeopixelComponentSelectorViewController.swift; sourceTree = "<group>"; };
 		DC65F1E52042526100262BC0 /* Logs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logs.swift; sourceTree = "<group>"; };
+		DC65F1E72043355500262BC0 /* Validator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Validator.swift; sourceTree = "<group>"; };
 		DE511F22E8F88E565DA29F57 /* Pods-macOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-macOS.debug.xcconfig"; path = "Pods/Target Support Files/Pods-macOS/Pods-macOS.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1570,6 +1572,7 @@
 				A9BCD6281E4D3B0B003D1CEA /* CommandLineColors.swift */,
 				DC65F1E52042526100262BC0 /* Logs.swift */,
 				A945E9E11E4DEF0100737BB0 /* EmbbededFrameworks */,
+				DC65F1E72043355500262BC0 /* Validator.swift */,
 			);
 			path = macOS_CommandLine;
 			sourceTree = "<group>";
@@ -2287,6 +2290,7 @@
 				A98D3AA61F38CD3F005081EA /* DFUPeripheralSelector.swift in Sources */,
 				A98D3ADF1F38CDB7005081EA /* ioapi.c in Sources */,
 				A93DE7821F36196B00B2EB5D /* BlePeripheral.swift in Sources */,
+				DC65F1E82043355500262BC0 /* Validator.swift in Sources */,
 				DC65F1E62042526100262BC0 /* Logs.swift in Sources */,
 				A98D3AAB1F38CD3F005081EA /* DFUServiceDelegate.swift in Sources */,
 				A9BCD6371E4D42C6003D1CEA /* CommandQueue.swift in Sources */,

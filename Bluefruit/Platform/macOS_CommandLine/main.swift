@@ -249,26 +249,30 @@ func main() {
             
             //commandLine.startScanning()
             func goto() {
-                guard let characterictic = commandLine.enterNewCharacteristic() as? (String, String) else {
-                   print("Please enter characteritic")
-                   exit(EXIT_FAILURE)
-                }
-                
+                /*
+                let characterictic = ("1111", "000001e2")
+                 //CB75DD6453CF483B9C6AD54F8EA8B5B9
                 //CB75DD64-53CF-483B-9C6A-D54F8EA8B5B9 - FBe
                 //7C620CD4-3426-401E-B444-8F0966FB5513 - FBe
                 //788C222B-EF14-447A-B1C8-FD73354CD753 - office
+                */
+                
+                guard let characterictic = commandLine.enterNewCharacteristic() as? (String, String) else {
+                   print("Please enter characteritic data")
+                   exit(EXIT_FAILURE)
+                }
+                
+                let peripheralIdentifier = commandLine.enterPheriferalUUID()
+ 
                 let characteristicChangeSemaphore = DispatchSemaphore(value: 0)
                 var isContinue = true
-                
-                
+  
                 queue.async(group: group) {
-                    guard let _peripheralIdentifier = UUID(uuidString: "CB75DD64-53CF-483B-9C6A-D54F8EA8B5B9") else {
-                        //TODO: here
-                        print("Argument validation error")
+                    guard let _peripheralIdentifier = UUID(uuidString: peripheralIdentifier) else {
+                        print("Please enter correct peripheralIdentifier")
                         exit(EXIT_FAILURE)
                     }
-                    
-                    //let characterictic = ("1111", "000001e2")
+ 
                     commandLine.connectAndUpdatePeripheral(uuid: _peripheralIdentifier, characteristicData: characterictic, completionHandler: {
                         
                         print("Do you want to continue Y/N")
