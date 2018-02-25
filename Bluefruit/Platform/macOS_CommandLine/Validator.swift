@@ -29,7 +29,7 @@ final class Validator {
     class func formattedUUID(uuidString: String) -> String {
         let uuid = uuidString.uppercased()
         let cleanUUID = uuid.components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
-        let mask = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX "
+        let mask = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
         
         var result = ""
         var index = cleanUUID.startIndex
