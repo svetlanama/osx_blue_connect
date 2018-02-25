@@ -279,18 +279,18 @@ func main() {
             let _ = group.wait(timeout: DispatchTime.distantFuture)
           } else {
          
-            //let characterictic = commandLine.enterNewCharacteristic()
+            let characterictic = commandLine.enterNewCharacteristic()
        
             //CB75DD64-53CF-483B-9C6A-D54F8EA8B5B9 - FBe
             //7C620CD4-3426-401E-B444-8F0966FB5513 - FBe
             //788C222B-EF14-447A-B1C8-FD73354CD753 - office
-            guard let _peripheralIdentifier = UUID(uuidString: "788C222B-EF14-447A-B1C8-FD73354CD753") else {
+            guard let _peripheralIdentifier = UUID(uuidString: "CB75DD64-53CF-483B-9C6A-D54F8EA8B5B9") else {
                 print("Argument validation error");
                 exit(EXIT_FAILURE)
             }
             
  
-            commandLine.findPeripheral(uuid: _peripheralIdentifier)
+            commandLine.connectAndUpdatePeripheral(uuid: _peripheralIdentifier, characteristicData: characterictic)
  
             
 //            if let hexUrl = hexUrl {
