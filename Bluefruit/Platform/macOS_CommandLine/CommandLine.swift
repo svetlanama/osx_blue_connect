@@ -111,6 +111,10 @@ class CommandLine: NSObject {
         startScanningAndShowIndex(false)
     }
     
+    func printResults() {
+        startScanningAndShowIndex(false)
+    }
+    
     private weak var didDiscoverPeripheralObserver: NSObjectProtocol?
     
     private func startScanningForPeripheral(uudidString: UUID) {
@@ -159,34 +163,7 @@ class CommandLine: NSObject {
             }
         }
     }
-    
-    private func didFoundPeripheral(notification: Notification) {
-        
-        guard let uuid = notification.userInfo?[BleManager.NotificationUserInfoKey.uuid.rawValue] as? UUID else { return }
-        //        guard uuid == searchingPheripheralUUID else {
-        //            return
-        //        }
-        if let peripheral = BleManager.sharedInstance.peripheral(with: uuid) {
-            
-            if !discoveredPeripheralsIdentifiers.contains(uuid) {
-                discoveredPeripheralsIdentifiers.append(uuid)
-                
-                let name = peripheral.name != nil ? peripheral.name! : "<Unknown>"
-                if scanResultsShowIndex {
-                    if let index  = discoveredPeripheralsIdentifiers.index(of: uuid) {
-                        print("\(index) -> \(uuid) - \(name)")
-                    }
-                } else {
-                    print("Found: \(uuid): \(name)")
-                }
-            }
-        }
-        
-        stopScanning()
-        
-        startMacPeripheral(uuid: uuid, releases: releases)
-    }
-    
+
     // MARK: - Ask user
     func askUserForPeripheral() -> UUID? {
         print("Scanning... Select a peripheral: ")
@@ -421,21 +398,29 @@ class CommandLine: NSObject {
         writeValueData(characteristic: characteristic, newData: newdata)
     }
     
-    // NEW Flow
-    public func enterNewCharacteristic() -> (characteristicID: String, characteristicValue: String) {
-        var characteristicID = "1111"
+    // NEW Flow2
+    let characteristicsIDS = [(ID: "1111", bytes: 4), (ID: "2222", bytes: 2), (ID: "7777", bytes: 2), (ID: "9999", bytes: 1),(ID: "BBBB", bytes: 1)]
+    private func printCharacteristicsIDS() {
+        for i in 0..<characteristicsIDS.count {
+            print("\(i) --> \(characteristicsIDS[i].ID) - \(characteristicsIDS[i].bytes) bytes ")
+        }
+    }
+ 
+    public func enterNewCharacteristic() -> (characteristicID: String?, characteristicValue: String?) {
+        print("Chhose new characteristic ID => ")
+        printCharacteristicsIDS()
+        guard let index = Int(readLine(strippingNewline: true) ?? "0") else {
+            return (nil, nil)
+        }
+        let characteristicID = characteristicsIDS[index].ID
         var characteristicValue = ""
-        let length = 8 //bytes*2 depends on value
+        let length = characteristicsIDS[index].bytes * 2 //depends on value
         while !validate(characteristicValue, length: length) {
             print("Value should contain \(length) bytes. Enter new characteristic value => ")
             characteristicValue = readLine(strippingNewline: true) ?? ""
         }
         print("characteristicString: \(characteristicValue)")
-        
-        let bytes = stringToUInt8(string: characteristicValue.uppercased())
-        let newdata = Data(bytes: bytes)
-        
-        print("hexDescription newdata: \(hexDescription(data: newdata))")
+
         return (characteristicID, characteristicValue)
     }
     
@@ -443,11 +428,11 @@ class CommandLine: NSObject {
         startMacPeripheral(uuid: peripheralUUID, releases: nil)
     }
     
-    func connectAndUpdatePeripheral(uuid peripheralUUID: UUID, characteristicData: (String, String)) {
-        print("findPeripheral a peripheral: ")
+    func connectAndUpdatePeripheral(uuid peripheralUUID: UUID, characteristicData: (String, String), completionHandler: (() -> ())) {
         let pheripherals : [CBPeripheral]? = BleManager.sharedInstance.centralManager?.retrievePeripherals(withIdentifiers: [peripheralUUID])
         
         print("retrievePeripherals: ", pheripherals)
+        //TODO if false
         guard let _pheripherals = pheripherals, _pheripherals.count > 0 else {
             return
         }
@@ -457,8 +442,19 @@ class CommandLine: NSObject {
         dfuPeripheral = BlePeripheral(peripheral:  _pheripherals[0], advertisementData: nil, rssi: nil)
         BleManager.sharedInstance.connect(to: dfuPeripheral!)
         let _ = dfuSemaphore.wait(timeout: .distantFuture)
+        
+        if let _newCharacteristicData = newCharacteristicData {
+            Logs.sharedInstance.addLog(log: Log(uuid: peripheralUUID.uuidString, time: "11:00", characteristicData: _newCharacteristicData))
+        }
+        
+        Logs.sharedInstance.printLogs()
+        resetData()
+        completionHandler()
     }
     
+    private func resetData() {
+        newCharacteristicData = nil
+    }
     private func writeValueData(characteristic: CBCharacteristic, newData: Data) {
         guard let _dfuPeripheral = dfuPeripheral else {
             DLog("OOPS dfuPeripheral is nil")
@@ -656,12 +652,17 @@ extension CommandLine : CBPeripheralDelegate {
             DLog("OOPS dfuPeripheral is nil")
             return
         }
-        //print("advertisements: ", _dfuPeripheral.advertisement.advertisementData)
-        BleManager.sharedInstance.disconnect(from: _dfuPeripheral)
+        
+        print("\n ########## SUCCESS CHARACTERISTIC UPDATING ########## \n")
+        //newCharacteristicData = nil
+        //BleManager.sharedInstance.disconnect(from: _dfuPeripheral)
+        dfuFinished()
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
+        newCharacteristicData = nil
         print("didUpdateNotificationStateFor: \(characteristic) error: \(error)")
+        // dfuFinished()
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
@@ -671,6 +672,8 @@ extension CommandLine : CBPeripheralDelegate {
             return
         }
         //print("advertisements: ", _dfuPeripheral.advertisement.advertisementData)
+        newCharacteristicData = nil
         BleManager.sharedInstance.disconnect(from: _dfuPeripheral)
+        // dfuFinished()
     }
 }

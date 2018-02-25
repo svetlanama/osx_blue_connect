@@ -33,10 +33,10 @@ func stringToUInt8(string: String) -> [UInt8] {
         startIndex = endIndex
     } while startIndex < str.endIndex
     
-    print("characteristicString result: \(result)")
+    //print("characteristicString result: \(result)")
     var newBytes = [UInt8]()
     for i in 0...result.count - 1 {
-        print("result: \(result[i])")
+        //print("result: \(result[i])")
         if let k = UInt8(result[i], radix: 16) {
             newBytes.append(k)
         }

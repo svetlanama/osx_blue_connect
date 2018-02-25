@@ -237,34 +237,56 @@ func main() {
                 print("Peripheral UUID invalid")
                 exit(EXIT_FAILURE)
             }
-            
-            if ignoreDFUChecks {
-                print("\tIgnore DFU warnings")
-            }
-            
+
             print("\tUUID: \(peripheralIdentifier)")
             queue.async(group: group) {
                 commandLine.connectToPeripheral(uuid: peripheralIdentifier)
             }
-
+            
             let _ = group.wait(timeout: DispatchTime.distantFuture)
           
         case .chnageCharacteristicFlow2:
-            let characterictic = commandLine.enterNewCharacteristic()
             
-            //CB75DD64-53CF-483B-9C6A-D54F8EA8B5B9 - FBe
-            //7C620CD4-3426-401E-B444-8F0966FB5513 - FBe
-            //788C222B-EF14-447A-B1C8-FD73354CD753 - office
-            guard let _peripheralIdentifier = UUID(uuidString: "CB75DD64-53CF-483B-9C6A-D54F8EA8B5B9") else {
-                print("Argument validation error");
-                exit(EXIT_FAILURE)
+            //commandLine.startScanning()
+            func goto() {
+                //            guard let characterictic = commandLine.enterNewCharacteristic() as? (String, String) else {
+                //               print("Please enter characteritic")
+                //               exit(EXIT_FAILURE)
+                //            }
+                
+                //CB75DD64-53CF-483B-9C6A-D54F8EA8B5B9 - FBe
+                //7C620CD4-3426-401E-B444-8F0966FB5513 - FBe
+                //788C222B-EF14-447A-B1C8-FD73354CD753 - office
+                let characteristicChangeSemaphore = DispatchSemaphore(value: 0)
+                var isContinue = true
+                
+                
+                queue.async(group: group) {
+                    guard let _peripheralIdentifier = UUID(uuidString: "CB75DD64-53CF-483B-9C6A-D54F8EA8B5B9") else {
+                        //TODO: here
+                        print("Argument validation error")
+                        exit(EXIT_FAILURE)
+                    }
+                    
+                    let characterictic = ("1111", "000001e2")
+                    commandLine.connectAndUpdatePeripheral(uuid: _peripheralIdentifier, characteristicData: characterictic, completionHandler: {
+                        
+                        
+                        print("\n Updating finished")
+                        print("Do you want to continue Y/N")
+                        isContinue = readLine(strippingNewline: true)?.uppercased() == "Y" ? true : false
+                        
+                        if !isContinue {
+                            characteristicChangeSemaphore.signal()
+                        } else {
+                            goto()
+                        }
+                    })
+                }
+                let _ = characteristicChangeSemaphore.wait(timeout: DispatchTime.distantFuture)
             }
-            
-            commandLine.connectAndUpdatePeripheral(uuid: _peripheralIdentifier, characteristicData: characterictic)
-            
-            //enter FBE udid
-            let _ = group.wait(timeout: DispatchTime.distantFuture)
-        
+            goto()
+  
         case .dfu:
             print("DFU Update")
 
